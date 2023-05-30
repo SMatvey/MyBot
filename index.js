@@ -5,9 +5,19 @@ const Telegraf = require("telegraf").Telegraf,
 const bot = new Telegraf(BOT_TOKEN);
 const { Markup } = require("telegraf");
 const comm = require('./command.js')
+let prapor = " ";
+
+function sleep(millis) {
+    var t = (new Date()).getTime();
+    var i = 0;
+    while (((new Date()).getTime() - t) < millis) {
+        i++;
+    }
+}
+
 
 bot.start((ctx) => {
-    ctx.reply(`Вітаю, ${ctx.message.from.first_name}! Готовий до роботи.`);
+    ctx.reply(`Вітаю, ${ctx.message.from.first_name}! Готовий до роботи.\nЦей бот був написаний для дипломної роботи з використанням API`)
 })
 
 bot.help((ctx) => {
@@ -15,16 +25,15 @@ bot.help((ctx) => {
 })
 
 bot.hears([/Привіт+/i, /Hi+/i,/Hello+/i], ctx=> {
-    ctx.reply("Й тобі привіт.")
+    ctx.reply("Й тобі привіт! Цей бот не створений для відповіді на повідомлення без команд.\nДля отримання списку команд зробіть запит /help")
 })
 
 bot.command('music', async (ctx) => { 
     try {
         await ctx.replyWithHTML('<b>Виберіть команду для запуску</b>', Markup.inlineKeyboard(
             [
-                [Markup.button.callback('Показати лист всіх пісень','btn_getMusic'), Markup.button.callback('Додати пісню до бази','btn_postMusic')],
-                // [Markup.button.callback('Відсортувати за алфавітом','btn_getMusicAZ'), 
-                // Markup.button.callback('Відсортувати в зворотньому напрямку','btn_getMusicZA')]
+                [Markup.button.callback('Показати лист всіх пісень','btn_getMusic'), 
+                Markup.button.callback('Додати пісню до бази','btn_postMusic')],
             ]
         ))
     } catch(e) {
@@ -36,10 +45,9 @@ bot.command('search_music', async (ctx) => {
     try {
         await ctx.replyWithHTML('<b>Виберіть команду для запуску</b>', Markup.inlineKeyboard(
             [
-                [Markup.button.callback('Порахувати всі пісні','btn_coutMusic'), Markup.button.callback('Порахувати пісні автора','btn_coutMusicA')],
-                [Markup.button.callback('Випадкова пісню','btn_getMusicRand')],
-                [Markup.button.callback('Пісні за частковим автором','btn_getMusicPartAuthor'), 
-                Markup.button.callback('Пісні за частковую назвою','btn_getMusicPartSong')],
+                [Markup.button.callback('Порахувати всі пісні','btn_countMusic'), Markup.button.callback('Порахувати пісні автора','btn_countMusicA')],
+                [Markup.button.callback('Отримати випадкову пісню','btn_getMusicRand')],
+                [Markup.button.callback('Шукати пісні за частковим автором чи назвою','btn_getMusicPartText')],
                 [Markup.button.callback('Знайти пісню за автором','btn_getMusicAuthor'), 
                 Markup.button.callback('Знайти пісню за назвою','btn_getMusicSong')]
             ]
@@ -64,21 +72,22 @@ bot.action('btn_getMusic', async (ctx) => {
             });
             ctx.reply(list, {disable_web_page_preview: true})
         })       
-
     } catch(e) {
         console.error(e)
     }
-
-    await ctx.replyWithHTML('<b>Виберіть команду для запуску</b>', Markup.inlineKeyboard(
-        [
-            [Markup.button.callback('Відсортувати за алфавітом','btn_getMusicAZ'), 
-            Markup.button.callback('Відсортувати в зворотньому напрямку','btn_getMusicZA')]
-        ]
-    ))
+    sleep(400);
+        ctx.replyWithHTML('<b>Виберіть команду для запуску</b>', Markup.inlineKeyboard(
+            [
+                [Markup.button.callback('Відсортувати за алфавітом','btn_getMusicAZ'), 
+                Markup.button.callback('Відсортувати в зворотньому напрямку','btn_getMusicZA')]
+            ]
+        ))
 })
 
 bot.action('btn_getMusicAZ', async (ctx) => { 
     try {
+        ctx.reply("_____________________________________________")
+        ctx.reply("\r\nОсь новий список.")
         await fetch("http://127.0.0.1:3000/music/sort-AtoZ",{
         method: "GET",
         headers: {"Content-Type":"appication/json"}
@@ -96,17 +105,12 @@ bot.action('btn_getMusicAZ', async (ctx) => {
     } catch(e) {
         console.error(e)
     }
-
-    await ctx.replyWithHTML('<b>Виберіть команду для запуску</b>', Markup.inlineKeyboard(
-        [
-            [Markup.button.callback('Відсортувати за алфавітом','btn_getMusicAZ'), 
-            Markup.button.callback('Відсортувати в зворотньому напрямку','btn_getMusicZA')]
-        ]
-    ))
 })
 
 bot.action('btn_getMusicZA', async (ctx) => { 
     try {
+        ctx.reply("_____________________________________________")
+        ctx.reply("\r\nОсь новий список.")
         await fetch("http://127.0.0.1:3000/music/sort-ZtoA",{
         method: "GET",
         headers: {"Content-Type":"appication/json"}
@@ -124,13 +128,6 @@ bot.action('btn_getMusicZA', async (ctx) => {
     } catch(e) {
         console.error(e)
     }
-
-    await ctx.replyWithHTML('<b>Виберіть команду для запуску</b>', Markup.inlineKeyboard(
-        [
-            [Markup.button.callback('Відсортувати за алфавітом','btn_getMusicAZ'), 
-            Markup.button.callback('Відсортувати в зворотньому напрямку','btn_getMusicZA')]
-        ]
-    ))
 })
 
 bot.action('btn_getMusicRand', async (ctx) => { 
@@ -148,19 +145,24 @@ bot.action('btn_getMusicRand', async (ctx) => {
             });
             ctx.reply(list)
         })       
-
     } catch(e) {
         console.error(e)
     }
-
-    await ctx.replyWithHTML('<b>Виберіть команду для запуску</b>', Markup.inlineKeyboard(
-        [Markup.button.callback('Випадкова пісню','btn_getMusicRand')]
+    sleep(400);
+    ctx.replyWithHTML('<b>Виберіть команду для запуску</b>', Markup.inlineKeyboard(
+        [Markup.button.callback('Отримати випадкову пісню','btn_getMusicRand')]
     ))
+     
 })
 
-bot.action('btn_getMusicPartAuthor', async (ctx) => { 
+bot.action('btn_getMusicPartText', (ctx) => { 
+    ctx.reply("Введіть автора чи назву пісні");
+    prapor = "text";
+})
+
+bot.action('btn_countMusic', async (ctx) => { 
     try {
-        await fetch("http://127.0.0.1:3000/music/search-author/",{
+        await fetch("http://127.0.0.1:3000/music/count-music",{
         method: "GET",
         headers: {"Content-Type":"appication/json"}
         })
@@ -168,102 +170,135 @@ bot.action('btn_getMusicPartAuthor', async (ctx) => {
         .then((res) => {
             console.log('res', res)
             let list = ""
-            res.forEach(element => {
-                list+=element.author+" "+element.song+" "+element.url_youtube+'\n'
-            });
+            list+=res.message
             ctx.reply(list)
         })       
-
     } catch(e) {
         console.error(e)
     }
-
-    await ctx.replyWithHTML('<b>Виберіть команду для запуску</b>', Markup.inlineKeyboard(
-        [Markup.button.callback('Випадкова пісню','btn_getMusicRand')]
-    ))
 })
 
-const search = '';
-function searchNow() {
-    try {
-        return fetch("http://127.0.0.1:3000/music/search-author/"+search,{
-        method: "GET",
-        headers: {"Content-Type":"appication/json"}
-        })
-        .then((response) => response.json())
-        .then((res) => {
-            console.log('res', res)
-            let list = ""
-            res.forEach(element => {
-                list+=element.author+" "+element.song+" "+element.url_youtube+'\n'
-            });
-            ctx.reply(list)
-        })       
+bot.action('btn_countMusicA', (ctx) => { 
+    ctx.reply("Введіть автора");
+    prapor = "Avtor";
+})
 
-    } catch(e) {
-        console.error(e)
+bot.action('btn_getMusicAuthor', (ctx) => { 
+    ctx.reply("Введіть автора");
+    prapor = "PowAvtr";
+})
+
+bot.action('btn_getMusicSong', (ctx) => { 
+    ctx.reply("Введіть повну назву");
+    prapor = "PowSong";
+})
+
+
+bot.hears(/[a-zA-Zа-яА-Я]+/, (ctx) => {
+    let endpoint = "";
+    if (prapor == "text") {
+        endpoint = "http://127.0.0.1:3000/music/search-music/"+ctx.match
+        try {
+            fetch(endpoint,{
+            method: "GET",
+            headers: {"Content-Type":"appication/json"}
+            })
+            .then((response) => response.json())
+            .then((res) => {
+                console.log('res', res)
+                let list = ""
+                res.forEach(element => {
+                    list+=element.author+" "+element.song+" "+element.url_youtube+'\n'
+                });
+                if (list != "") {
+                    ctx.reply(list)
+                } else {
+                    ctx.reply("Пісні з такою частковую назвою чи автором не має. Спробуйте ще раз, перевіривши запит.")
+                }
+                prapor = "";
+            })       
+        } catch(e) {
+            console.error(e)
+        }
     }
-}
-
-bot.action('btn_getMusicPartSong', async (ctx) => { 
-    await ctx.replyWithHTML('<b>Відправте назву пісні чи автора</b>', Markup.inlineKeyboard([]))
-    search = await ctx.text 
-    await searchNow(search)
+    else if (prapor == "Avtor") {
+        endpoint = "http://127.0.0.1:3000/music/count-music/"+ctx.match
+        try {
+            fetch(endpoint,{
+            method: "GET",
+            headers: {"Content-Type":"appication/json"}
+            })
+            .then((response) => response.json())
+            .then((res) => {
+                console.log('res', res)
+                let list = ""
+                list+=res.message
+                ctx.reply(list)
+                prapor = "";
+            })
+        } catch(e) {
+            console.error(e)
+        }
+    }
+    else if (prapor == "PowAvtr") {
+        endpoint = "http://127.0.0.1:3000/music/music-by-author/"+ctx.match
+        try {
+            fetch(endpoint,{
+            method: "GET",
+            headers: {"Content-Type":"appication/json"}
+            })
+            .then((response) => response.json())
+            .then((res) => {
+                console.log('res', res)
+                let list = ""
+                res.forEach(element => {
+                    list+=element.author+" "+element.song+" "+element.url_youtube+'\n'
+                });
+                if (list != "") {
+                    ctx.reply(list)
+                } else {
+                    ctx.reply("Пісні з таким автором не має. Спробуйте ще раз, перевіривши запит.")
+                }
+                prapor = "";
+            })       
+        } catch(e) {
+            console.error(e)
+        }
+    }
+    else if (prapor == "PowSong") {
+        endpoint = "http://127.0.0.1:3000/music/music-by-song/"+ctx.match
+        try {
+            fetch(endpoint,{
+            method: "GET",
+            headers: {"Content-Type":"appication/json"}
+            })
+            .then((response) => response.json())
+            .then((res) => {
+                console.log('res', res)
+                let list = ""
+                res.forEach(element => {
+                    list+=element.author+" "+element.song+" "+element.url_youtube+'\n'
+                });
+                if (list != "") {
+                    ctx.reply(list)
+                } else {
+                    ctx.reply("Пісні з такою назвою не має. Спробуйте ще раз, перевіривши запит.")
+                }
+                prapor = "";
+            })       
+        } catch(e) {
+            console.error(e)
+        }
+    }
+    else {
+        ctx.reply("Схоже ви не вибрали корректну команду. Спробуйте будь-ласка ще раз!\nСписок доступних команд знаходиться в меню, або за запитом /help") 
+    }
 })
 
 
-bot.on('message', (ctx) => { 
-    ctx.reply("Схоже ви не вибрали корректну команду. Спробуйте будь-ласка ще раз!")       
-})
 
 console.log('all alright')
 bot.launch()
 
 process.once('SIGINT', () => bot.stop('SIGINT'))
 process.once('SIGTERM', () => bot.stop('SIGTERM'))
-
-
-// let data_from_server={};
-// let data_of_data_from_server="";
-
-// function getCurrentDate()
-// {
-//     var today=new Date();
-//     var today_day = String(today.getDate()).padStart(2,'0');
-//     var today_month = String(today.getMonth()+1).padStart(2,'0');
-//     var today_year = today.getFullYear();
-//     today = today_year + "-" + today_month + "-" + today_day;
-//     console.log(today);
-//     console.log(data_of_data_from_server);
-//     return today;
-// }
-
-// function getDataFromServer() {
-//     return fetch("http://127.0.0.1:3000/music",{
-//         method: "GET",
-//         headers: {"Content-Type":"appication/json"}
-//         })
-//         .then((res) => res.json())
-//         .then((data) => {
-//             data_from_server=data;
-//             data_of_data_from_server=data_from_server.data.date;
-//         })
-//         .catch((er) => {
-//             console.log('Error: $er');
-//         })
-// }
-
-// bot.hears(/[A-Z]+/i, async (ctx) => { 
-//     let message = ctx.message.text;
-//     console.log(message);
-//     if(data_of_data_from_server!=getCurrentDate())
-//     {
-//         await getDataFromServer();
-//         ctx.reply(message +": "+data_from_server.data.stats[message]);
-//     }
-//     else
-//     {
-//         ctx.reply(message +": "+data_from_server.data.stats[message]);
-//         console.log("dont go to server");
-//     }
-// })
